@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 RUN apt update && apt install -y mariadb-server mariadb-client
 COPY --chmod=755 entrypoint.sh /entrypoint.sh
 COPY ./maria.cnf /etc/mysql/mariadb.cnf

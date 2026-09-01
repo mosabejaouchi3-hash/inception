@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 RUN apt update && apt install -y nginx
 RUN apt-get update && apt-get install -y openssl && \
     mkdir -p /etc/ssl/certs /etc/ssl/private && \
@@ -8,4 +8,4 @@ RUN apt-get update && apt-get install -y openssl && \
     -subj "/C=MA/ST=Khouribga/L=Khouribga/O=1337/OU=IT/CN=mjaouchi.42.fr"
 WORKDIR /var/www/html
 COPY configue.conf /etc/nginx/nginx.conf
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

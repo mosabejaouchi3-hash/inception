@@ -1,21 +1,27 @@
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 
-RUN apt-get update && apt-get install -y \
-    php-fpm \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    php7.4-fpm \
+    php-cli \
     php-common \
     php-mysql \
     php-curl \
     php-gd \
     php-bcmath \
-    php-json \
     php-opcache \
     php-imagick \
     php-mbstring \
     php-xml \
     php-zip \
+    mariadb-client \
+    ca-certificates \
     wget \
     tar \
+    bash \
     && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /run/php /var/www/html && \
+    chown -R www-data:www-data /run/php /var/www/html
 
 WORKDIR /var/www/html
 
@@ -28,9 +34,11 @@ RUN wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
     && chmod +x wp-cli.phar \
     && mv wp-cli.phar /usr/local/bin/Si-Achraf
 
-RUN sed -i 's/listen = .*/listen = 0.0.0.0:9000/' /etc/php/*/fpm/pool.d/www.conf
+RUN sed -i 's/listen = .*/listen = 0.0.0.0:9000/' /etc/php/7.4/fpm/pool.d/www.conf
 
 COPY bash.sh /usr/local/bin/bash.sh
 RUN chmod +x /usr/local/bin/bash.sh
+
+EXPOSE 9000
 
 CMD ["/usr/local/bin/bash.sh"]

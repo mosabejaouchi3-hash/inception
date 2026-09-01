@@ -43,6 +43,7 @@ services:
       - NEW_USER_EMAIL
       - ADMIN_USER
       - ADMIN_EMAIL
+      - DOMAIN_NAME
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/9000' || exit 1"]
@@ -68,6 +69,25 @@ services:
     depends_on:
       wordpress:
         condition: service_healthy
+
+  static_site:
+    image: static_site
+    container_name: static_site
+    build: ./requirements/bonus/static_site
+    networks:
+      - n-inception
+    restart: always
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    build: ./requirements/bonus/adminer
+    networks:
+      - n-inception
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: always
 
 secrets:
   db_password:

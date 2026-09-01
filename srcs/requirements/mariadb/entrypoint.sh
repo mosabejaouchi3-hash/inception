@@ -20,10 +20,18 @@ if [ ! -d "/var/lib/mysql/${DB_NAME}" ]; then
     echo "Initializing MariaDB database and users..."
 
     mariadbd-safe --datadir=/var/lib/mysql &
-    
-    while ! mariadb-admin ping --silent; do
-        sleep 1
-    done
+
+number=0
+
+while ! mariadb-admin ping --silent && [ "$number" -lt 4 ]; do
+    sleep 1
+    number=$((number + 1))
+done
+
+if [ "$number" -ge 4 ]; then
+    echo "MariaDB failed to start in time." >&2
+    exit 1
+fi
 
     mariadb -u root <<EOF
 CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;
