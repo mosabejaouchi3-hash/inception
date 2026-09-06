@@ -1,162 +1,64 @@
-Why does the project require the use of the Penultimate Stable release of Debian (Bullseye), and what is the difference between it and Bookworm?
+This project was created as part of the 42 curriculum by mjaouchi.
 
-لتجنب المشاكل  التقنية التي تكون في الإصدارات الجديد و الثغرات
-النسخ المستقرة تكون أفضل في التعلم لأنها لا يكون فيها الكثير من الشاكل
+## Description
 
-----------------------------------------------------------------------------------------
+**Project Goal:**
+Build three interconnected services to serve WordPress pages.
 
-What is the fundamental difference between the `debian:bullseye` image and the `debian:bullseye-slim` image?
+**Components:**
+The infrastructure consists of three core services: NGINX, PHP-FPM, and MariaDB.
 
-هناك فرق من ناحية الحجم 
-debian:bullseye > debian:bullseye-slim
+### Architectural Decisions & Comparisons
 
-----------------------------------------------------------------------------------------
+NGINX acts as a reverse proxy server; it receives requests from the client via HTTPS and forwards them to PHP-FPM via the FastCGI protocol. PHP-FPM processes the requested PHP files and responds to NGINX, which in turn returns the response to the client.
 
-How does the “restart: always” option ensure service continuity in a production environment?
+To handle dynamic content, PHP-FPM connects to MariaDB over TCP/IP (using an IP address and port). The communication consists of SQL queries used to retrieve, filter, or update persistent data.
 
-يعيد تشغيل تلك السيرفيس التي فيها وضع “restart: always”
-عند حدوث مشكل داخلها أو اي خروج كيف ما كان كان by exit 0 to other
+## Instructions
 
-----------------------------------------------------------------------------------------
 
-What is the role of networks such as n-inception, and why do we use a user-defined bridge network instead of a virtual network?
+## Resources
 
-لكي تكون جميع serveses in one network for ونستخدم bridge لكي يكون فصل بين network host and network containers
+https://docs.docker.com/engine/install/
+https://docs.docker.com/get-started/
+https://docs.docker.com/reference/compose-file/
+https://docs.docker.com/reference/dockerfile/
+https://docs.docker.com/engine/storage/
+https://docs.docker.com/engine/network/
+https://docs.docker.com/compose/how-tos/use-secrets/
+https://semaphore.io/blog/docker-secrets-management
+https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html
+https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide
+https://developer.wordpress.org/advanced-administration/before-install/howto-install/
 
-----------------------------------------------------------------------------------------
 
-How does Internal DNS work within a Docker network to allow WordPress to connect to MariaDB using only the name?
 
-يكون مثل table يبحث فيه عن Ip مخصص لكل container ب name of container 
 
-----------------------------------------------------------------------------------------
 
-What is the purpose of the .dockerignore file, and why did we exclude the .git folder and the .env and secrets/ files from it?
+## Virtual Machines vs. Docker
 
-عند عمل docker push لا يتم push folder and files التي في .dockerignore 
-لمادا قمنا بوضع داخلهم 
-.git && .env && secrets
-لأن فيه بيانات حساس في secrets
-و .git فيها أسماء ملفات الحساس 
-env لا أعرف
+Technical Nuance to convey:
+Strictly speaking, the architectural comparison is between Virtual Machines and Containers. Docker is the ecosystem and container engine used to automate, build, and manage these Linux containers.
 
-----------------------------------------------------------------------------------------
 
-What is the difference between the CMD command and the ENTRYPOINT command in a Dockerfile?
+**Isolation:** VMs provide complete hardware-level isolation via a Hypervisor, where each VM runs its own dedicated Guest OS Kernel. In Contrast, containers share the Host OS Kernel and rely on Linux primitives (namespaces and cgroups), resulting in lighter process-level isolation
 
-كليهما أعرف أنه يعملان عند عمل container 
+**Resource Consumption:** Containers are sigificantly more lightweight because they eliminate the overhead of running multiple guest kernels and full OS stacks. They share host resources directly, resulting in lower RAM usage, faster startup times, and minimal CPU overhead.
 
-----------------------------------------------------------------------------------------
+**Protability & Workflow:** Containers can be built, destroyed, and scaled in seconds using simple declarative files (Dockerfile, docker-compose.yml), making them far more portable and suitable for multi-service environments than heavy VM images.
 
-What is the difference between passing passwords via environment variables and passing them via Docker Secrets?
 
-إدا مررتها عبر env يمكن لأي شخص عبر inspect رأيت كل env الخاص ب دالك container أو عن طريق أمر env في داخل container 
-أما  docker secret لا يمكننك رأيتها ب inspect ولا ب env لاكن يمكنك رايتها إن عمل قرأة ملف التي كتبة فيه وسط container 
+## Secrets vs. Environment Variables
 
-----------------------------------------------------------------------------------------
+what is Roles of ENV ?
+What is problem of ENV with sensitive data, and How the secret solve this problem ? 
 
-Where does Docker store secrets in the container's file system during runtime?
+**what is ENV:** in container run a programmes this programmes it need i varibles for work how can set this varibles into container? at this moment, it comes a ENV for solve this problem via inject this env from the image or cmd or docker-compose.
 
-في tmpfs
+**What is problem of ENV with sensitive data:** but this way dont do not allow to inject a sensitive data because env can you wathes by multipel way if you inject env in images by dockerfile just write docker image history My-image can watch all ENV if you use docker-compose or cmd line the same thing can watch by cmd docker container inspect "CONTAINER ID" can you watch all env or run env cmd into container.
 
-----------------------------------------------------------------------------------------
+**How the secret solve this problem?**
+in secrets method add the sensitive data in file and docker demon move this file into a folder in container if programme in container if this programme want use this data just take from file 
+ب
 
-What is the difference between regular storage spaces (Docker Named Volumes) and Bind Mounts linked to /home/mjaouchi/data?
-
-الفرق واحد تدار من docker engine وأخرى تدار منك أنت بشكل كامل 
-Name volume : docker engine 
-Mount Bind : from you
-
-----------------------------------------------------------------------------------------
-
-What happens to the database data and WordPress posts if I delete the containers using `docker compose down` and then rebuild them?
-
-إدا كنت تستعمل Named Volume تحدف بكامل 
-أما إن كنت تستخد Mount Bind فتبقى
-
-----------------------------------------------------------------------------------------
-
-How do you manage user permissions (chown / chmod) between the host operating system and the www-data account within containers?
-
-I dont know
-
-----------------------------------------------------------------------------------------
-
-Why is NGINX the only container in the core architecture that opens an external port (443:443)?
-
-for security because nginx is server connect with client
-
-----------------------------------------------------------------------------------------
-
-What is a self-signed SSL certificate, and what does the command `openssl req -x509` do?
-
-هي التي تأد بها للمستخدم أنك جهة موثوقة هي جزء من عملية create sesion key
-
-----------------------------------------------------------------------------------------
-
-3. خادم NGINX وتشفير TLS/SSL
-
-
-كل أسئلة هاد القسم تقريبا لا يمكنني الإجابة عنها لأني لا أفهمها جيدا
-
-----------------------------------------------------------------------------------------
-
-What is the difference between php-fpm and php-cli, and why did we install them both inside the container?
-
-php-fpm 
-هو fastCGI-process-managent 
-هو الدي يقوم بمعالجة file.php ويعيد النتيجة عبر protocol fastCGI
-
-أما php-cli هو أوامر التي نستخدمها لإستعمال php-fpm
-
-----------------------------------------------------------------------------------------
-
-Why do we change the listening port at www.conf from the default Unix socket to port 0.0.0.0:9000?
-
-لكي تتمكن من التواصل عبر protocol TCP/IP
-و تواصل عبر IPs ب Port 9000
-
-----------------------------------------------------------------------------------------
-
-What is the WP-CLI tool, and what are the architectural benefits of using it to automate website installation instead of the graphical interface?
-
-
-هي التي تقوم ب إعداد ملفات wordpress بشكل ألي 
-مثل Init database
-and create User of Admine and any user
-فقط عبر cmd line
-
-----------------------------------------------------------------------------------------
-
-Why does the WordPress setup script require the mariadb-client package?
-
-ليستطيع التواصل مع mariadb server و وصل wordpress by maraidbs-server
-
-----------------------------------------------------------------------------------------
-
-Why did we check for the existence of a file like version.php before copying the WordPress files to /var/www/html within the script?
-
-......
-
-----------------------------------------------------------------------------------------
-
-How can you prevent a race condition between WordPress startup and MariaDB server readiness?
-
-لأن Wordpress لكي تنطلق يجب أن تكون mariadb جاهزة
-
-----------------------------------------------------------------------------------------
-
-Why should PHP-FPM be run on the last line of the script using `exec php-fpm7.4 -F` (in foreground mode)?
-
-لكي يستقبل أي request تأتيه من عند nginx 
-
-----------------------------------------------------------------------------------------
-
-What is the difference between the mariadb-server package and the mariadb-client package?
-
-mariadb-server : هي التي تدير البيانات و table و تخزن البيانات 
-أما mariadb-client: هي client الدي يستخدم maraidb ليخزن فيها البيانات و يتحكم فيها و ينشأ ويحدف
-و يعدل
-
-----------------------------------------------------------------------------------------
-
+**security:** Environment can inject into image by dockerfile this way is bad practice if you want pass the secrets as this way because any one has a image can watch all secrets by cmd "docker image history My_image" and can pass by cmd or docker-compose even this method can user of the container watch value of ENV and if there is any secrets, it poses a danger depending on the sensitivily of the secret. In contrast "Secrets Method" it save your sensitive data from access to any user 

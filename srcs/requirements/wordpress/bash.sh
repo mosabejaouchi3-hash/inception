@@ -28,10 +28,10 @@ else
     exit 1
 fi
 
-if ! Si-Achraf core is-installed --allow-root 2>/dev/null; then
+if ! wordpress core is-installed --allow-root 2>/dev/null; then
 
     echo "Configuring WordPress..."
-    Si-Achraf config create \
+    wordpress config create \
         --dbname="${DB_NAME}" \
         --dbuser="${DB_USER}" \
         --dbpass="${DB_PASSWORD}" \
@@ -39,7 +39,7 @@ if ! Si-Achraf core is-installed --allow-root 2>/dev/null; then
         --allow-root
 
     echo "Installing WordPress Core..."
-    Si-Achraf core install \
+    wordpress core install \
         --url="https://${DOMAIN_NAME}" \
         --title="My Inception Site" \
         --admin_user="${ADMIN_USER}" \
@@ -47,7 +47,7 @@ if ! Si-Achraf core is-installed --allow-root 2>/dev/null; then
         --admin_email="${ADMIN_EMAIL}" \
         --allow-root
 
-    Si-Achraf user create "${NEW_USER}" "${NEW_USER_EMAIL}" \
+    wordpress user create "${NEW_USER}" "${NEW_USER_EMAIL}" \
     --role=author \
     --user_pass="${WP_PASS_USER}" \
     --allow-root
