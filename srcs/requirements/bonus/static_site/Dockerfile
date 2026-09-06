@@ -5,7 +5,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY conf/nginx.conf /etc/nginx/nginx.conf
-COPY site/ /var/www/static/
+COPY static/ /var/www/static/
 
 EXPOSE 4242
 

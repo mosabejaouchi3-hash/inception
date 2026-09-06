@@ -44,8 +44,8 @@ make fclean
 ```
 
 ### 3. Verification
-* **HTTPS Access:** Open `https://mjaouchi.42.fr` to verify TLSv1.2/TLSv1.3 encryption.
-* **Port Isolation:** Ensure only port `443` is reachable on the host (ports `80`, `3306`, and `9000` must remain closed or internal).
+* **HTTPS Access:** Open `https://mjaouchi.42.fr` to verify TLSv1.3 encryption.
+* **Port Isolation:** Ensure only port `443` is reachable on the host (ports `443`, `3306`, and `9000` must remain closed or internal).
 * **Persistence Test:** Run `make down` followed by `make` to verify that WordPress posts and database records persist.
 
 
