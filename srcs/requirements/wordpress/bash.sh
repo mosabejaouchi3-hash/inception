@@ -53,8 +53,6 @@ if ! wordpress core is-installed --allow-root 2>/dev/null; then
     --allow-root
 fi
 
-mkdir -p /run/php
-chown -R www-data:www-data "$WP_DIR" /run/php
 
 find /etc/php -name "www.conf" -exec sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' {} +
 

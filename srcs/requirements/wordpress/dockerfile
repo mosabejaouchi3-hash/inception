@@ -3,16 +3,8 @@ FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     php7.4-fpm \
     php-cli \
-    php-common \
     php-mysql \
     php-curl \
-    php-gd \
-    php-bcmath \
-    php-opcache \
-    php-imagick \
-    php-mbstring \
-    php-xml \
-    php-zip \
     mariadb-client \
     ca-certificates \
     wget \
@@ -20,8 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /run/php /var/www/html && \
-    chown -R www-data:www-data /run/php /var/www/html
+RUN mkdir -p /run/php /var/www/html
+    # chown -R www-data:www-data /run/php /var/www/html
 
 WORKDIR /var/www/html
 
