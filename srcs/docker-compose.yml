@@ -1,0 +1,119 @@
+
+
+services:
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    build: ./requirements/mariadb
+    networks:
+      - n-inception
+    secrets:
+      - db_password
+      - db_root_pass
+    environment:
+      - DB_NAME
+      - DB_USER
+    volumes:
+      - v-mariadb:/var/lib/mysql
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root -p$(cat /run/secrets/db_root_pass)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  wordpress:
+    image: wordpress
+    container_name: wordpress
+    build: ./requirements/wordpress
+    networks:
+      - n-inception
+    volumes:
+      - v-wordpress:/var/www/html
+    secrets:
+      - db_password
+      - wp_admin_pass
+      - wp_pass_user
+    environment:
+      - DB_NAME
+      - DB_USER
+      - DB_HOST
+      - NEW_USER
+      - NEW_USER_EMAIL
+      - ADMIN_USER
+      - ADMIN_EMAIL
+      - DOMAIN_NAME
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/9000' || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    build: ./requirements/nginx
+    networks:
+      - n-inception
+    ports:
+      - "443:443"
+    volumes:
+      - v-wordpress:/var/www/html
+    restart: always
+    depends_on:
+      wordpress:
+        condition: service_healthy
+
+  static_site:
+    image: static_site
+    container_name: static_site
+    build: ./requirements/bonus/static_site
+    networks:
+      - n-inception
+    restart: always
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    build: ./requirements/bonus/adminer
+    networks:
+      - n-inception
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: always
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  wp_admin_pass:
+    file: ../secrets/admin_pass.txt
+  wp_pass_user:
+    file: ../secrets/wp_pass_user.txt
+  db_root_pass:
+    file: ../secrets/db_root_pass.txt
+
+networks:
+  n-inception:
+    name: n-inception
+    driver: bridge
+
+volumes:
+  v-wordpress:
+    name: v-wordpress
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/mjaouchi/data/wordpress
+  v-mariadb:
+    name: v-mariadb
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/mjaouchi/data/mariadb
