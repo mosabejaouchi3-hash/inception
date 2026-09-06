@@ -74,15 +74,10 @@ Strictly speaking, the architectural comparison is between Virtual Machines and 
 
 ## Docker Network vs Host Network
 
-I'll assume that subject means by Docker Network is Brideg Network because
-Docker Network Have foure type of Network.
+**Isolation & Ports:** In Host Network mode, the container shares the host's network namespace directly, which eliminates port isolation and can cause port conflicts. In contrast, a custom Docker Network provides strict isolation using Linux network namespaces, giving each container its own isolated port space.
 
-Bridge:
-Host:
-none:
-overlay:
+**Performance & Security & DNS:** The Host Network offers near-native performance and lower latency by bypassing virtualization layers (like NAT and bridges). However, a Docker Network is significantly more secure (preventing direct exposure to the host's interfaces) and enables built-in DNS resolution between containers.)
 
 
 
 ## Docker Volumes vs Bind Mounts
-
