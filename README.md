@@ -16,7 +16,37 @@ To handle dynamic content, PHP-FPM connects to MariaDB over TCP/IP (using an IP 
 
 ## Instructions
 
+## Instructions
 
+### 1. Prerequisites
+Ensure Docker Engine, Docker Compose, and GNU `make` are installed. Map the local domain in `/etc/hosts` and create the required host volume mount directories:
+
+```bash
+echo "127.0.0.1 mjaouchi.42.fr" | sudo tee -a /etc/hosts
+sudo mkdir -p /home/mjaouchi/data/wordpress /home/mjaouchi/data/mariadb
+```
+
+### 2. Compilation & Lifecycle Management
+Manage the infrastructure lifecycle directly using the root `Makefile`:
+
+```bash
+# Build custom images and start all services in detached mode
+make
+
+# Check container health and running states
+docker compose -f srcs/docker-compose.yml ps
+
+# Stop running containers and tear down the network
+make down
+
+# Purge containers, custom images, networks, and persistent volume data
+make fclean
+```
+
+### 3. Verification
+* **HTTPS Access:** Open `https://mjaouchi.42.fr` to verify TLSv1.2/TLSv1.3 encryption.
+* **Port Isolation:** Ensure only port `443` is reachable on the host (ports `80`, `3306`, and `9000` must remain closed or internal).
+* **Persistence Test:** Run `make down` followed by `make` to verify that WordPress posts and database records persist.
 
 
 ## Resources
@@ -45,6 +75,7 @@ https://developer.wordpress.org/advanced-administration/before-install/howto-ins
 
 https://spacelift.io/blog/docker-networking#docker-network-types
 
+https://www.datacamp.com/tutorial/docker-mount
 
 
 ## Virtual Machines vs. Docker
@@ -81,3 +112,17 @@ Strictly speaking, the architectural comparison is between Virtual Machines and 
 
 
 ## Docker Volumes vs Bind Mounts
+
+Containers are ephemeral by default; when a container is stopped or removed, all runtime state and internal data written to its writable layer are permanently lost. To achieve data persistence, Docker provides two primary storage mechanisms:
+
+* **Named Volumes (Docker-Managed Lifecycle):**
+  Volumes are managed entirely by the Docker daemon and stored within a dedicated storage area on the host filesystem (typically `/var/lib/docker/volumes/`). They isolate container data from the host's core filesystem structure and are ideal for databases and production workloads:
+  ```bash docker volume create db_data docker run -v db_data:/var/lib/mysql mariadb```
+
+Bind Mounts (Granular Host Control):
+Bind mounts map an explicit, user-defined file or directory from the host filesystem directly into the container. Unlike managed volumes, bind mounts offer granular control over the exact directory path, file permissions, and directory structure on the host, making them ideal for development environments and configuration file injection:
+
+Bash
+```docker run -v /home/user/app/config:/etc/nginx/conf.d:ro nginx```
+
+ro = Read-Only
