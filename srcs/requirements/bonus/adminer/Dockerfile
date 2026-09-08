@@ -1,11 +1,11 @@
-FROM debian:bullseye-slim
+FROM debian:12
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt update && \
+    apt install -y \
         php-cli \
         php-mysql \
-        wget \
-        ca-certificates && \
+        procps \
+        wget && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /var/www/adminer && \

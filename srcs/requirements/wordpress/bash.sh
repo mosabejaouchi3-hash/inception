@@ -1,11 +1,7 @@
 #!/bin/sh
 set -e
 
-WP_DIR="/var/www/html"
-cd "$WP_DIR"
-rm -rf "$WP_DIR"/*
-mv /var/tmp/* "$WP_DIR"
-
+cd /var/www/html
 
 if [ -f "/run/secrets/db_password" ]; then
     DB_PASSWORD=$(cat /run/secrets/db_password)
@@ -28,7 +24,7 @@ else
     exit 1
 fi
 
-if ! wordpress core is-installed --allow-root 2>/dev/null; then
+    wordpress core download --allow-root
 
     echo "Configuring WordPress..."
     wordpress config create \
@@ -51,18 +47,10 @@ if ! wordpress core is-installed --allow-root 2>/dev/null; then
     --role=author \
     --user_pass="${WP_PASS_USER}" \
     --allow-root
-fi
 
+mkdir -p /run/php
+chown -R www-data:www-data /var/www/html
 
 find /etc/php -name "www.conf" -exec sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' {} +
 
-PHP_FPM_BIN=$(command -v php-fpm || ls /usr/sbin/php-fpm* 2>/dev/null | head -n 1)
-
-if [ -z "$PHP_FPM_BIN" ]; then
-    echo "Error: PHP-FPM binary not found!"
-    exit 1
-fi
-
-echo "WordPress FastCGI is running with ($PHP_FPM_BIN)..."
-
-exec "$PHP_FPM_BIN" -F
+exec /usr/sbin/php-fpm8.2 -F

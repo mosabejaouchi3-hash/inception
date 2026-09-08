@@ -24,5 +24,3 @@ fclean:
 	@sudo rm -rf $(DATA_WP)/* $(DATA_DB)/*
 
 re: fclean up
-
-.PHONY: all init_dirs up build down clean fclean re

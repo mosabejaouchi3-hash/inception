@@ -16,8 +16,6 @@ To handle dynamic content, PHP-FPM connects to MariaDB over TCP/IP (using an IP 
 
 ## Instructions
 
-## Instructions
-
 ### 1. Prerequisites
 Ensure Docker Engine, Docker Compose, and GNU `make` are installed. Map the local domain in `/etc/hosts` and create the required host volume mount directories:
 
@@ -45,8 +43,8 @@ make fclean
 
 ### 3. Verification
 * **HTTPS Access:** Open `https://mjaouchi.42.fr` to verify TLSv1.3 encryption.
-* **Port Isolation:** Ensure only port `443` is reachable on the host (ports `443`, `3306`, and `9000` must remain closed or internal).
-* **Persistence Test:** Run `make down` followed by `make` to verify that WordPress posts and database records persist.
+* **Port Isolation:** Ensure only port `443` is reachable on the host.
+* **Persistence Test:** Run `make re` to verify that WordPress posts and database records persist.
 
 
 ## Resources
@@ -78,6 +76,18 @@ https://spacelift.io/blog/docker-networking#docker-network-types
 https://www.datacamp.com/tutorial/docker-mount
 
 
+## The use of Docker
+
+
+## Sources included in the project
+
+
+## Main design choices
+
+
+## Comparison between
+
+
 ## Virtual Machines vs. Docker
 
 * Technical Nuance to convey:
@@ -94,7 +104,8 @@ Strictly speaking, the architectural comparison is between Virtual Machines and 
 ## Secrets vs. Environment Variables
 
 **ENV Definition & Role:** Environment variables provide a way to pass dynamic configuration settings to applications running inside a container without modifying their source code.
-**Injection Methods:** They can be injected at runtime via Docker CLI flags, Dockerfile instructions (such as ENV), and configuration files like docker-compose.yml 
+
+**Injection Methods:** They can be injected in Container via Docker CLI flags, Dockerfile instructions (such as ENV), and configuration files like docker-compose.yml 
 
 * **Environment Variables (Insecure for Credentials):**
   Environment variables are suitable for non-sensitive runtime configuration. However, passing credentials (such as database passwords) via environment variables is a major security risk: they remain exposed in plaintext inside image layers (`docker history`), container metadata (`docker inspect`), and process listings (`/proc/1/environ`).
@@ -107,7 +118,7 @@ Strictly speaking, the architectural comparison is between Virtual Machines and 
 
 **Isolation & Ports:** In Host Network mode, the container shares the host's network namespace directly, which eliminates port isolation and can cause port conflicts. In contrast, a custom Docker Network provides strict isolation using Linux network namespaces, giving each container its own isolated port space.
 
-**Performance & Security & DNS:** The Host Network offers near-native performance and lower latency by bypassing virtualization layers (like NAT and bridges). However, a Docker Network is significantly more secure (preventing direct exposure to the host's interfaces) and enables built-in DNS resolution between containers.)
+**Performance & Security & DNS:** The Host Network offers near-native performance and lower latency by passing virtualization layers (like NAT and bridges). However, a Docker Network is significantly more secure (preventing direct exposure to the host's interfaces) and enables built-in DNS resolution between containers.)
 
 
 
@@ -119,7 +130,7 @@ Containers are ephemeral by default; when a container is stopped or removed, all
   Volumes are managed entirely by the Docker daemon and stored within a dedicated storage area on the host filesystem (typically `/var/lib/docker/volumes/`). They isolate container data from the host's core filesystem structure and are ideal for databases and production workloads:
   ```bash docker volume create db_data docker run -v db_data:/var/lib/mysql mariadb```
 
-Bind Mounts (Granular Host Control):
+* **Bind Mounts (Granular Host Control):**
 Bind mounts map an explicit, user-defined file or directory from the host filesystem directly into the container. Unlike managed volumes, bind mounts offer granular control over the exact directory path, file permissions, and directory structure on the host, making them ideal for development environments and configuration file injection:
 
 Bash

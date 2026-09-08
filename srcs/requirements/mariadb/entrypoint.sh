@@ -1,9 +1,4 @@
 #!/bin/sh
-set -e
-
-mkdir -p /run/mysqld
-chmod 777 /run/mysqld
-
 
 if [ -f "/run/secrets/db_password" ]; then
     DB_PASSWORD=$(cat /run/secrets/db_password)
@@ -47,4 +42,4 @@ EOF
 fi
 
 echo "Starting MariaDB in foreground..."
-exec mysqld --user=mysql --datadir=/var/lib/mysql --bind-address=0.0.0.0 --port="${MYSQL_PORT:-3306}"
+exec mysqld --user=mysql --datadir=/var/lib/mysql
