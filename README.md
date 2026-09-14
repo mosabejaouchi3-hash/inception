@@ -1,64 +1,160 @@
-This project was created as part of the 42 curriculum by mjaouchi.
+*This project has been created as part of the 42 curriculum by mjaouchi.*
 
 ## Description
 
 **Project Goal:**
-Build three interconnected services to serve WordPress pages.
+Build three interconnected services to serve WordPress pages over HTTPS.
 
 **Components:**
 The infrastructure consists of three core services: NGINX, PHP-FPM, and MariaDB.
 
-### Architectural Decisions & Comparisons
+NGINX acts as a reverse proxy. It receives requests from the client over HTTPS and forwards them to PHP-FPM using the FastCGI protocol. PHP-FPM processes the PHP files and sends the response back to NGINX, which then returns it to the client.
 
-NGINX acts as a reverse proxy server; it receives requests from the client via HTTPS and forwards them to PHP-FPM via the FastCGI protocol. PHP-FPM processes the requested PHP files and responds to NGINX, which in turn returns the response to the client.
+To handle dynamic content, PHP-FPM connects to MariaDB over TCP/IP. The communication consists of SQL queries used to retrieve, filter, or update persistent data.
 
-To handle dynamic content, PHP-FPM connects to MariaDB over TCP/IP (using an IP address and port). The communication consists of SQL queries used to retrieve, filter, or update persistent data.
+---
 
 ## Instructions
 
+### 1. Prerequisites
+
+Make sure Docker Engine, Docker Compose, and GNU `make` are installed. Then map the local domain and create the required host directories:
+
+```bash
+echo "127.0.0.1 mjaouchi.42.fr" | sudo tee -a /etc/hosts
+sudo mkdir -p /home/mjaouchi/data/wordpress /home/mjaouchi/data/mariadb
+```
+
+### 2. Build and Manage
+
+Use the root `Makefile` to manage the infrastructure:
+
+```bash
+# Build images and start all services in detached mode
+make
+
+# Check container health and running state
+docker compose -f srcs/docker-compose.yml ps
+
+# Stop containers and tear down the network
+make down
+
+# Remove containers, images, networks, and persistent volume data
+make fclean
+```
+
+### 3. Verification
+
+- **HTTPS Access:** Open `https://mjaouchi.42.fr` to verify TLSv1.3 encryption is working.
+- **Port Isolation:** Confirm that only port `443` is reachable from the host.
+- **Persistence Test:** Run `make re` and verify that WordPress posts and database records survive a full restart.
+
+---
 
 ## Resources
 
-https://docs.docker.com/engine/install/
-https://docs.docker.com/get-started/
-https://docs.docker.com/reference/compose-file/
-https://docs.docker.com/reference/dockerfile/
-https://docs.docker.com/engine/storage/
-https://docs.docker.com/engine/network/
-https://docs.docker.com/compose/how-tos/use-secrets/
-https://semaphore.io/blog/docker-secrets-management
-https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html
-https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide
-https://developer.wordpress.org/advanced-administration/before-install/howto-install/
+### Documentation
 
+- [Docker Engine Installation](https://docs.docker.com/engine/install/)
+- [Docker Getting Started](https://docs.docker.com/get-started/)
+- [Docker Compose File Reference](https://docs.docker.com/reference/compose-file/)
+- [Dockerfile Reference](https://docs.docker.com/reference/dockerfile/)
+- [Docker Storage (Volumes & Bind Mounts)](https://docs.docker.com/engine/storage/)
+- [Docker Networking](https://docs.docker.com/engine/network/)
+- [Docker Secrets](https://docs.docker.com/compose/how-tos/use-secrets/)
+- [NGINX FastCGI Module](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html)
+- [MariaDB Installation Guide](https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide)
+- [WordPress Installation Guide](https://developer.wordpress.org/advanced-administration/before-install/howto-install/)
 
+### Articles
 
+- [Docker Secrets Management – Semaphore](https://semaphore.io/blog/docker-secrets-management)
+- [Docker Networking Types – Spacelift](https://spacelift.io/blog/docker-networking#docker-network-types)
+- [Docker Volumes and Bind Mounts – DataCamp](https://www.datacamp.com/tutorial/docker-mount)
 
+### AI Usage
 
-## Virtual Machines vs. Docker
+AI was used during this project for:
+- Understanding core concepts such as FastCGI, Docker networking, and secret management.
+- Formatting and structuring technical comparisons in this documentation (VM vs Docker, Secrets vs ENV, etc.).
 
-Technical Nuance to convey:
-Strictly speaking, the architectural comparison is between Virtual Machines and Containers. Docker is the ecosystem and container engine used to automate, build, and manage these Linux containers.
+---
 
+## Project Description
 
-**Isolation:** VMs provide complete hardware-level isolation via a Hypervisor, where each VM runs its own dedicated Guest OS Kernel. In Contrast, containers share the Host OS Kernel and rely on Linux primitives (namespaces and cgroups), resulting in lighter process-level isolation
+### The Use of Docker
 
-**Resource Consumption:** Containers are sigificantly more lightweight because they eliminate the overhead of running multiple guest kernels and full OS stacks. They share host resources directly, resulting in lower RAM usage, faster startup times, and minimal CPU overhead.
+Docker packages each service (NGINX, WordPress/PHP-FPM, and MariaDB) inside its own lightweight isolated unit called a **container**.
 
-**Protability & Workflow:** Containers can be built, destroyed, and scaled in seconds using simple declarative files (Dockerfile, docker-compose.yml), making them far more portable and suitable for multi-service environments than heavy VM images.
+Unlike heavy Virtual Machines, containers share the host OS kernel but stay isolated from each other. Each container includes everything it needs to run, so the application behaves consistently across environments. Docker Compose lets you define, start, stop, and connect all services with a single command using a declarative configuration file.
 
+### Sources Included in the Project
 
-## Secrets vs. Environment Variables
+| Path | Role |
+|------|------|
+| `srcs/docker-compose.yml` | Defines all services, networks, volumes, environment variables, and Docker secrets |
+| `srcs/requirements/nginx/` | NGINX Dockerfile, server config (`nginx.conf`), and TLS setup |
+| `srcs/requirements/wordpress/` | WordPress/PHP-FPM Dockerfile and entrypoint script (WP-CLI install and config) |
+| `srcs/requirements/mariadb/` | MariaDB Dockerfile, server config (`maria.cnf`), and database initialization script |
+| `secrets/` | Sensitive credentials (passwords, admin credentials) mounted at runtime via Docker secrets |
+| `Makefile` | Automates building, running, stopping, and cleaning the entire infrastructure |
 
-what is Roles of ENV ?
-What is problem of ENV with sensitive data, and How the secret solve this problem ? 
+### Main Design Choices
 
-**what is ENV:** in container run a programmes this programmes it need i varibles for work how can set this varibles into container? at this moment, it comes a ENV for solve this problem via inject this env from the image or cmd or docker-compose.
+- **Custom Dockerfiles only:** Every image is built from Debian or Alpine from scratch. No pre-built application images from Docker Hub are used (as required by 42 rules).
+- **Single Responsibility Principle:** One process per container. NGINX handles TLS termination and reverse proxying, PHP-FPM executes PHP, and MariaDB handles persistence.
+- **Minimal port exposure:** Only port `443` (HTTPS) is bound to the host. MariaDB (3306) and PHP-FPM (9000) communicate exclusively over an isolated internal Docker bridge network using container DNS names.
+- **Persistent bind mounts:** Explicit host directory mapping (`/home/mjaouchi/data/...`) guarantees that database and WordPress files survive container restarts and teardowns.
+- **Runtime-only secrets:** Sensitive credentials are never written into environment variables or image layers. They are mounted as files at runtime and read by the entrypoint scripts.
 
-**What is problem of ENV with sensitive data:** but this way dont do not allow to inject a sensitive data because env can you wathes by multipel way if you inject env in images by dockerfile just write docker image history My-image can watch all ENV if you use docker-compose or cmd line the same thing can watch by cmd docker container inspect "CONTAINER ID" can you watch all env or run env cmd into container.
+---
 
-**How the secret solve this problem?**
-in secrets method add the sensitive data in file and docker demon move this file into a folder in container if programme in container if this programme want use this data just take from file 
-ب
+### Virtual Machines vs. Docker
 
-**security:** Environment can inject into image by dockerfile this way is bad practice if you want pass the secrets as this way because any one has a image can watch all secrets by cmd "docker image history My_image" and can pass by cmd or docker-compose even this method can user of the container watch value of ENV and if there is any secrets, it poses a danger depending on the sensitivily of the secret. In contrast "Secrets Method" it save your sensitive data from access to any user 
+> The accurate comparison is between **Virtual Machines** and **Containers**. Docker is the toolchain used to build and manage containers.
+
+| | Virtual Machines | Containers (Docker) |
+|---|---|---|
+| **Isolation** | Hardware-level via a Hypervisor; each VM runs its own full Guest OS kernel | Process-level via Linux namespaces and cgroups; containers share the Host OS kernel |
+| **Resource usage** | High — each VM runs a complete OS stack | Low — no guest kernel overhead; startup in seconds |
+| **Portability** | Heavy VM images, slow to distribute | Lightweight images, built and shared via `Dockerfile` and registries |
+| **Use case** | Full OS isolation, legacy workloads | Microservices, CI/CD, multi-service environments |
+
+---
+
+### Secrets vs. Environment Variables
+
+Environment variables pass configuration settings to containers without modifying source code. They can be injected via CLI flags, `Dockerfile` `ENV` instructions, or `docker-compose.yml`.
+
+| | Environment Variables | Docker Secrets |
+|---|---|---|
+| **Security** | Exposed in plaintext in image layers (`docker history`), container metadata (`docker inspect`), and process listings (`/proc/1/environ`) | Stored outside the image; mounted into the container at runtime as a file under `/run/secrets/` |
+| **Persistence in memory** | Remain in the container environment throughout its lifetime | In Docker Swarm, mounted via `tmpfs` (in-memory only). In Docker Compose, mounted as a bind mount to `/run/secrets/` — still outside image layers |
+| **Suitable for** | Non-sensitive config (ports, feature flags, hostnames) | Passwords, API keys, TLS certificates |
+
+---
+
+### Docker Network vs. Host Network
+
+| | Docker Network (Bridge) | Host Network |
+|---|---|---|
+| **Isolation** | Each container gets its own network namespace; ports do not conflict | Container shares the host network namespace directly; no port isolation |
+| **Security** | Containers are not directly reachable from outside the bridge; only explicitly published ports are exposed | All container ports are exposed on the host interface |
+| **DNS** | Built-in DNS resolution between containers by service name | No container DNS; services must use `localhost` or explicit IPs |
+| **Performance** | Slight overhead from NAT and the virtual bridge | Near-native, no virtualization layer |
+| **Use case** | Production: isolated multi-service architectures | Specific performance-critical scenarios where isolation is not needed |
+
+---
+
+### Docker Volumes vs. Bind Mounts
+
+Containers are ephemeral by default — when a container is removed, all data written to its writable layer is lost. Docker provides two mechanisms for persistent storage:
+
+| | Named Volumes | Bind Mounts |
+|---|---|---|
+| **Managed by** | Docker daemon (stored in `/var/lib/docker/volumes/`) | The user — an explicit host path is mapped into the container |
+| **Host path control** | None — Docker chooses the location | Full control over the exact directory and permissions |
+| **Use case** | Production databases, portability across environments | Development, config file injection, direct host access to files |
+| **Example** | `docker run -v db_data:/var/lib/mysql mariadb` | `docker run -v /home/user/config:/etc/nginx/conf.d:ro nginx` |
+
+> `ro` means **read-only** — the container can read the files but cannot modify them.

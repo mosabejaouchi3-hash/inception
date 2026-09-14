@@ -1,44 +1,26 @@
-FROM debian:bullseye-slim
+FROM debian:12
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    php7.4-fpm \
-    php-cli \
-    php-common \
-    php-mysql \
-    php-curl \
-    php-gd \
-    php-bcmath \
-    php-opcache \
-    php-imagick \
-    php-mbstring \
-    php-xml \
-    php-zip \
+RUN apt update && apt install -y \
+    php8.2-fpm \
+    php8.2-mysql \
     mariadb-client \
-    ca-certificates \
     wget \
-    tar \
-    bash \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /run/php /var/www/html && \
-    chown -R www-data:www-data /run/php /var/www/html
+
+RUN sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php/8.2/fpm/pool.d/www.conf && \
+    mkdir -p /run/php
 
 WORKDIR /var/www/html
 
-RUN wget -q https://wordpress.org/latest.tar.gz -O /tmp/latest.tar.gz && \
-    mkdir -p /var/tmp && \
-    tar -xzf /tmp/latest.tar.gz -C /var/tmp --strip-components=1 && \
-    rm /tmp/latest.tar.gz
-
-RUN wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
     && chmod +x wp-cli.phar \
     && mv wp-cli.phar /usr/local/bin/wordpress
-
-RUN sed -i 's/listen = .*/listen = 0.0.0.0:9000/' /etc/php/7.4/fpm/pool.d/www.conf
 
 COPY bash.sh /usr/local/bin/bash.sh
 RUN chmod +x /usr/local/bin/bash.sh
 
 EXPOSE 9000
 
-CMD ["/usr/local/bin/bash.sh"]
+ENTRYPOINT ["/usr/local/bin/bash.sh"]
+

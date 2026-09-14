@@ -1,5 +1,3 @@
-
-
 services:
   mariadb:
     image: mariadb
@@ -15,12 +13,12 @@ services:
       - DB_USER
     volumes:
       - v-mariadb:/var/lib/mysql
-    restart: always
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root -p$(cat /run/secrets/db_root_pass)"]
       interval: 10s
-      timeout: 5s
-      retries: 3
+      timeout: 10s
+      retries: 5
       start_period: 15s
 
   wordpress:
@@ -44,13 +42,13 @@ services:
       - ADMIN_USER
       - ADMIN_EMAIL
       - DOMAIN_NAME
-    restart: always
+    restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/9000' || exit 1"]
+      test: ["CMD-SHELL", "pidof php-fpm8.2 || exit 1"]
       interval: 5s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     depends_on:
       mariadb:
         condition: service_healthy
@@ -65,7 +63,7 @@ services:
       - "443:443"
     volumes:
       - v-wordpress:/var/www/html
-    restart: always
+    restart: on-failure
     depends_on:
       wordpress:
         condition: service_healthy
@@ -76,7 +74,7 @@ services:
     build: ./requirements/bonus/static_site
     networks:
       - n-inception
-    restart: always
+    restart: on-failure
 
   adminer:
     image: adminer
@@ -87,7 +85,7 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-    restart: always
+    restart: on-failure
 
 secrets:
   db_password:
