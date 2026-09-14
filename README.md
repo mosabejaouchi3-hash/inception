@@ -1,4 +1,4 @@
-This project was created as part of the 42 curriculum by mjaouchi.
+*This project was created as part of the 42 curriculum by mjaouchi.*
 
 ## Description
 
@@ -76,19 +76,43 @@ https://spacelift.io/blog/docker-networking#docker-network-types
 https://www.datacamp.com/tutorial/docker-mount
 
 
-## The use of Docker
+## Project description
+### The use of Docker
+
+Docker puts each service (NGINX, WordPress, and MariaDB) inside its own lightweight box called a container.
+
+Instead of heavy Virtual Machines, containers share the same system but stay completely isolated. Each container has everything it needs to run, so the app works the same everywhere. With Docker Compose, you can start, stop, and connect all services with one single command.
+
+### Sources included in the project
+
+srcs/docker-compose.yml: Defines the services, custom networks, volumes, environment variables, and Docker secrets.
+
+srcs/requirements/nginx/: Contains the NGINX Dockerfile, server configuration (nginx.conf), and TLS setup scripts.
+
+srcs/requirements/wordpress/: Contains the WordPress/PHP-FPM Dockerfile, and entrypoint script to install and configure WordPress via WP-CLI.
+
+srcs/requirements/mariadb/: Contains the MariaDB Dockerfile, server configuration (maria.cnf), and database initialization script.
+
+secrets/: Stores sensitive runtime credentials (database passwords, admin credentials) mounted securely via Docker secrets.
+
+Makefile: Automates building, running, stopping, and cleaning the entire infrastructure (make, make down, make fclean).
+
+### Main design choices
+
+Custom Dockerfiles Only: Every image is built from scratch based on Debian/Alpine without using pre-built images from Docker Hub (as required by 42 rules).
+
+Single Responsibility Principle: One service per container. NGINX handles reverse proxying and TLS termination, PHP-FPM executes PHP scripts, and MariaDB handles persistence.
+
+Port Exposure Restriction: Only port 443 (HTTPS) is bound to the host interface. MariaDB (3306) and PHP-FPM (9000) communicate exclusively over an isolated internal Docker bridge network via internal DNS.
+
+Persistent Named-Volumes Storage: Explicit host directory mapping (/home/mjaouchi/data/...) guarantees full control over database and WordPress files across container teardowns.
+
+In-Memory Secret Handling: Sensitive passwords are never written to environment variables or image layers; they are read at runtime via file mounts.
 
 
-## Sources included in the project
+### Comparison betwee
 
-
-## Main design choices
-
-
-## Comparison between
-
-
-## Virtual Machines vs. Docker
+### Virtual Machines vs. Docker
 
 * Technical Nuance to convey:
 Strictly speaking, the architectural comparison is between Virtual Machines and Containers. Docker is the ecosystem and container engine used to automate, build, and manage these Linux containers.
@@ -101,7 +125,7 @@ Strictly speaking, the architectural comparison is between Virtual Machines and 
 **Protability & Workflow:** Containers can be built, destroyed, and scaled in seconds using simple declarative files (Dockerfile, docker-compose.yml), making them far more portable and suitable for multi-service environments than heavy VM images.
 
 
-## Secrets vs. Environment Variables
+### Secrets vs. Environment Variables
 
 **ENV Definition & Role:** Environment variables provide a way to pass dynamic configuration settings to applications running inside a container without modifying their source code.
 
@@ -114,7 +138,7 @@ Strictly speaking, the architectural comparison is between Virtual Machines and 
   Sensitive data is stored in dedicated files outside the image build context. Docker Compose references these files, allowing the Docker daemon to mount them into the container at runtime into a target directory in-memory using `tmpfs`. This means that data is never baked into image layers, and if the container stops, the sensitive data is immediately cleared from memory.
 
 
-## Docker Network vs Host Network
+### Docker Network vs Host Network
 
 **Isolation & Ports:** In Host Network mode, the container shares the host's network namespace directly, which eliminates port isolation and can cause port conflicts. In contrast, a custom Docker Network provides strict isolation using Linux network namespaces, giving each container its own isolated port space.
 
@@ -122,7 +146,7 @@ Strictly speaking, the architectural comparison is between Virtual Machines and 
 
 
 
-## Docker Volumes vs Bind Mounts
+### Docker Volumes vs Bind Mounts
 
 Containers are ephemeral by default; when a container is stopped or removed, all runtime state and internal data written to its writable layer are permanently lost. To achieve data persistence, Docker provides two primary storage mechanisms:
 

@@ -4,7 +4,6 @@ RUN apt update && \
     apt install -y \
         php-cli \
         php-mysql \
-        procps \
         wget && \
     rm -rf /var/lib/apt/lists/*
 
@@ -17,4 +16,4 @@ RUN chmod 755 /var/www/adminer/index.php
 
 EXPOSE 8080
 
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/adminer"]
+ENTRYPOINT ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/adminer"]

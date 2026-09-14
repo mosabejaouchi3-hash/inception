@@ -1,7 +1,4 @@
 #!/bin/sh
-set -e
-
-cd /var/www/html
 
 if [ -f "/run/secrets/db_password" ]; then
     DB_PASSWORD=$(cat /run/secrets/db_password)
@@ -51,6 +48,6 @@ fi
 mkdir -p /run/php
 chown -R www-data:www-data /var/www/html
 
-find /etc/php -name "www.conf" -exec sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' {} +
+sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php/8.2/fpm/pool.d/www.conf
 
 exec /usr/sbin/php-fpm8.2 -F

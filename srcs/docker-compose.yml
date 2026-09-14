@@ -19,8 +19,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root -p$(cat /run/secrets/db_root_pass)"]
       interval: 10s
-      timeout: 5s
-      retries: 3
+      timeout: 10s
+      retries: 5
       start_period: 15s
 
   wordpress:
@@ -46,11 +46,11 @@ services:
       - DOMAIN_NAME
     restart: on-failure:3
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/9000' || exit 1"]
+      test: ["CMD-SHELL", "pidof php-fpm8.2 || exit 1"]
       interval: 5s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     depends_on:
       mariadb:
         condition: service_healthy

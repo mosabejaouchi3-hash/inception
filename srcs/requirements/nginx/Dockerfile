@@ -6,7 +6,6 @@ RUN apt update && apt install -y openssl && \
     -keyout /etc/ssl/private/nginx-selfsigned.key \
     -out /etc/ssl/certs/nginx-selfsigned.crt \
     -subj "/C=MA/ST=Khouribga/L=Khouribga/O=1337/OU=IT/CN=mjaouchi.42.fr"
-RUN apt install -y procps
 WORKDIR /var/www/html
 COPY configue.conf /etc/nginx/nginx.conf
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

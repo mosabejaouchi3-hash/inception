@@ -51,7 +51,12 @@ Manage the infrastructure build and execution directly via the root `Makefile`:
 make
 
 # Build and run containers in foreground mode (streams live logs to the terminal)
+
+# using makefile: 
 make build
+
+# using docker compose directly :
+sudo -f srcs/docker-compose.yml up --build
 
 # View running container status and health
 docker compose -f srcs/docker-compose.yml ps

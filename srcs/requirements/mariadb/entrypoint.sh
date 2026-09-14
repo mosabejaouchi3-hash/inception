@@ -14,16 +14,16 @@ fi
 if [ ! -d "/var/lib/mysql/${DB_NAME}" ]; then
     echo "Initializing MariaDB database and users..."
 
-    mariadbd-safe --datadir=/var/lib/mysql &
+    mariadbd-safe --datadir=/var/lib/mysql --bind-address=0.0.0.0 &
 
 number=0
 
-while ! mariadb-admin ping --silent && [ "$number" -lt 4 ]; do
-    sleep 1
+while ! mariadb-admin ping --silent && [ "$number" -lt 5 ]; do
+    sleep 2
     number=$((number + 1))
 done
 
-if [ "$number" -ge 4 ]; then
+if [ "$number" -ge 5 ]; then
     echo "MariaDB failed to start in time." >&2
     exit 1
 fi
@@ -42,4 +42,4 @@ EOF
 fi
 
 echo "Starting MariaDB in foreground..."
-exec mysqld --user=mysql --datadir=/var/lib/mysql
+exec mariadbd --user=mysql --datadir=/var/lib/mysql --bind-address=0.0.0.0
